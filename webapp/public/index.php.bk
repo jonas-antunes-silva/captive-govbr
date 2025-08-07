@@ -1,0 +1,192 @@
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use League\OAuth2\Client\Provider\Google;
+use Dotenv\Dotenv;
+
+session_start();
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$redirectUri = 'https://captive.concordia.ifc.edu.br/auth';
+$captiveUrl = 'https://captive.ifc-concordia.edu.br';
+
+$provider = new Google([
+    'clientId'     => $_ENV['GOOGLE_CLIENT_ID'],
+    'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+    'redirectUri'  => $redirectUri,
+]);
+
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+
+// Função para obter o MAC a partir do IP
+function getMacAddress($ip) {
+    // Executa o comando arp (Linux/Unix)
+    $command = "arp -n " . escapeshellarg($ip);
+    $output = shell_exec($command);
+
+    // Extrai o endereço MAC do resultado
+    if (preg_match('/([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}/', $output, $matches)) {
+        return $matches[0];
+    } else {
+        return "MAC não encontrado";
+    }
+}
+
+
+// Roteamento manual
+switch ($path) {
+    case '/':
+        header("Location: /login");
+        exit;
+
+    case '/login':
+
+	if(isset($_SESSION['user'])){
+		echo "{$_SESSION['user']['name']}, você já está logado!";
+	}
+
+        $state = bin2hex(random_bytes(16));
+        $_SESSION['oauth2state'] = $state;
+
+        echo "state gerado pelo index local:" . $_SESSION['oauth2state'] ."<br>";
+
+        $authUrl = $provider->getAuthorizationUrl(['state' => $state, 'scope' => ['openid', 'email', 'profile']]);
+        $_SESSION['oauth2state'] = $provider->getState();
+
+         echo "state gerado pelo provider: " . $_SESSION['oauth2state'];
+
+
+
+        include __DIR__ . '/../login.html';
+        exit;
+
+	case '/logout':
+		// Destroi a sessão local
+		//session_destroy();
+
+		// Faz logout do Google e retorna ao seu login
+        	//$googleLogoutUrl = 'https://accounts.google.com/Logout?continue=$captiveUrl/login';
+
+            $clientIp = $_SERVER['REMOTE_ADDR'];
+            $clientMacaddress = getMacAddress($clientIp);
+
+            $output = [];
+            $return_var = 0;
+            $cmd = escapeshellcmd("sudo /opt/captive-govbr/scripts/ipset_del.sh $clientIp $clientMacaddress");
+	    exec("$cmd 2>&1", $output, $return_var);
+
+	    header("Location: $captiveUrl");
+
+
+
+	exit;
+
+
+
+    case '/auth':
+        if (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
+            unset($_SESSION['oauth2state']);
+            exit('State inválido');
+        }
+
+        try {
+            $accessToken = $provider->getAccessToken('authorization_code', [
+                'code' => $_GET['code']
+            ]);
+
+            $resourceOwner = $provider->getResourceOwner($accessToken);
+            $user = $resourceOwner->toArray();
+            $_SESSION['user'] = $user;
+
+            $clientIp = $_SERVER['REMOTE_ADDR'];
+            $clientMacaddress = getMacAddress($clientIp);
+
+            $output = [];
+            $return_var = 0;
+            $cmd = escapeshellcmd("sudo /opt/captive-govbr/scripts/ipset_add.sh $clientIp $clientMacaddress");
+//            $cmd = escapeshellcmd("sudo /sbin/ipset add authenticated_clients $clientIp");
+            exec("$cmd 2>&1", $output, $return_var);
+
+            echo "<pre>";
+            echo "Comando: $cmd\n";
+            echo "Código de retorno: $return_var\n";
+            echo "Saída:\n" . implode("\n", $output);
+            echo "</pre>";
+
+
+            // exec("ipset add authenticated_clients $clientIp 2>/dev/null");
+
+echo "<h2>Bem-vindo {$user['email']}</h2>";
+echo "<p>Seu acesso está liberado por 1 hora.</p>";
+echo "<a href='/logout'><button style='padding: 10px 20px; font-size: 16px;'>Sair</button></a>";
+
+
+
+	    echo "<pre>";
+            print_r($user);
+            echo "</pre>";
+        } catch (Exception $e) {
+            exit('Falha ao autenticar: ' . $e->getMessage());
+        }
+        exit;
+
+    case '/liberacao-temporaria':
+            $clientIp = $_SERVER['REMOTE_ADDR'];
+	    $clientMacaddress = getMacAddress($clientIp);
+            $output = [];
+            $return_var = 0;
+	    $sucesso = false;
+            $mensagem_retorno = "";
+            $cmd = escapeshellcmd("sudo /opt/captive-govbr/scripts/ipset_add_temp.sh $clientIp $clientMacaddress");
+
+
+            exec("$cmd 2>&1", $output, $return_var);
+
+		if(!$return_var){
+			$sucesso = true;
+			$mensagem_retorno = $output;
+		}else{
+			$sucesso = false;
+			$mensagem_retorno = $output;
+		}
+
+	    echo json_encode([ 
+		'success' => $sucesso,
+		'output' => $mensagem_retorno
+ 		]);
+
+/*            echo "<pre>";
+            echo "Comando: $cmd\n";
+            echo "Código de retorno: $return_var\n";
+            echo "Saída:\n" . implode("\n", $output);
+            echo "</pre>";*/
+        exit;
+
+    case '/.well-known/captive-portal':
+    case '/captive-portal/api':
+        header('Content-Type: application/json');
+        if (!empty($_SESSION['user'])) {
+            echo json_encode(['captive' => false, 'user-portal-url' => null]);
+        } else {
+            echo json_encode(['captive' => true, 'user-portal-url' => $captiveUrl]);
+        }
+        exit;
+
+    // Compatibilidade captive-portal
+    case '/canonical.html':
+    case '/generate_204':
+    case '/ncsi.txt':
+    case '/connecttest.txt':
+    case '/hotspot-detect.html':
+    case '/library/test/success.html':
+    case '/captiveportal.html':
+        header("Location: /login");
+        exit;
+
+    default:
+        http_response_code(404);
+        echo "404 - Página não encontrada.";
+        exit;
+}

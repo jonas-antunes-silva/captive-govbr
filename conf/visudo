@@ -1,0 +1,7 @@
+www-data ALL=(ALL) NOPASSWD: /usr/sbin/ipset add authenticated_clients *
+www-data ALL=(ALL) NOPASSWD: /usr/sbin/ipset add temp_clients *
+www-data ALL=(ALL) NOPASSWD: /usr/sbin/ipset test temp_clients *
+www-data ALL=(ALL) NOPASSWD: /opt/captive-govbr/scripts/ipset_add_temp.sh *
+www-data ALL=(ALL) NOPASSWD: /opt/captive-govbr/scripts/ipset_add.sh *
+www-data ALL=(ALL) NOPASSWD: /opt/captive-govbr/scripts/ipset_del.sh *
+

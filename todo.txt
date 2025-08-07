@@ -1,0 +1,3 @@
+- Quando for criar script de instalação:
+  - lembrar de configurar o sudo para www-data executar o comando ipset:  www-data ALL=(ALL) NOPASSWD: /usr/sbin/ipset add authenticated_clients *
+
