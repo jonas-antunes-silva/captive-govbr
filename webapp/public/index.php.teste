@@ -34,7 +34,20 @@ function getMacAddress($ip)
 
 switch ($path) {
     case '/':
+        if (!isset($_SESSION['user'])) {
             header("Location: /login");
+            exit;
+        }else{
+            ?>
+            <!DOCTYPE html>
+                <body>
+                    <h1>Bem-vindo ao Captive Portal</h1>
+                    <p>Você já está conectado.</p>
+                    <p><a href="/logout">Sair</a></p>   
+                </body>
+            <html>
+            <?php
+        }
         exit;
 
     case '/login':
@@ -70,55 +83,48 @@ switch ($path) {
         <html>
         <head>
             <title>Wifi visitantes - IFC Concórdia</title>
-            <script src="/js/bootstrap.min.js"></script>
-            <link rel="stylesheet" href="/css/bootstrap.min.css">          
+            <script src="/js/bootstrap.bundle.min.js"></script>
+            <link rel="stylesheet" href="/css/bootstrap.min.css">
             <style>
                 body {
+                    font-family: Arial, sans-serif;
                     background-color: #f1f1f1ff;
                     color: #333;
                 }
 
+                h1 {
+                    color: #616161ff;
+                    font-size: 24px;
+                    margin-bottom: 30px;
+                }
                 button {
-			border-radius: 25px !important;
+                    background-color: #f1f1f1;
+                    color: white;
+                    border: none;
+                    border-radius: 25px;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    text-align: center;
+                    display: inline-flex;
+                    align-items: center;
+                    border: 2px solid #f1f1f1;
                 }
 
 
                 button span {
-                   	
+                    
                     color: #2864ae;
                     font-weight: bold;
-		    font-size: 1.5em;
                 }
 
-                button:hover span{
-			color: white !important;
+                button:hover {
+                    border: 2px solid #2864ae;
                 }
                 .logo-govbr {
-                    height: 50px;
+                    height: 30px;
                     margin-left: 10px;
                 }
-
-
-		  .logo-ifc {
-		    width: 100%;
-		  }
-		  @media (min-width: 576px) {
-		    .logo-ifc { width: 300px; }
-		  }
-		  @media (min-width: 768px) {
-		    .logo-ifc { width: 350px; }
-		  }
-		  @media (min-width: 992px) {
-		    .logo-ifc { width: 200px; }
-	                button span {
-
-        	            color: #2864ae;
-                	    font-weight: bold;
-	                    font-size: 1.1em;
-        	        }
-		  }
-
-
             </style>
 
             <script>
@@ -151,28 +157,30 @@ switch ($path) {
 
         </head>
         <body>
-		<div class="container-fluid">
-			<div class="row">
-	            		<div class="col-sm-10 col-lg-6 mx-auto d-flex flex-column align-items-center mt-5 py-5" style="border-radius: 10px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">                  
+            <div class="container">
+                <div class="row justify-content-center mt-sm-5">
+                    <div class="col-sm-1 col-md-2">
 
-		        		<img src="/img/logo_ifc_vertical_concordia.png" alt="IFC Concórdia" class="logo-ifc">
-	
-        	        		<h1 class="fs-3 mt-3">Acesso a rede wifi para visitantes</h1>
+                    </div>
+                    <div class="col-sm-10 col-md-8 d-flex flex-column justify-content-center align-items-center pb-5" style="border-radius: 10px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">                  
+
+                        <img src="/img/logo_ifc_vertical_concordia.png" alt="IFC Concórdia" class="w-50">
+
+                        <h1>Acesso a rede wifi para visitantes</h1>
 
 
-	        	        	<button
-        	        	    	id="login-button"
-					class="mt-5 w-50 btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center mb-5"
-	                		>
-        	            		<span>Entrar com</span>
-                	    		<img class="logo-govbr" src="/img/govbr-colorido-b.png" alt="gov.br">
-	                		</button>
-	    			</div>
-			</div>
-		</div>
+                        <button
+                            id="login-button"
+                        >
+                            <span>Entrar com</span>
+                            <img class="logo-govbr" src="/img/govbr-colorido-b.png" alt="gov.br">
+                        </button>
+                    </div>
+                    <div class="col-sm-1 col-md-2"></div>
+                </div>
+            </div>
         </body>
         </html>
-
         <?php
         exit;
 
@@ -199,6 +207,8 @@ switch ($path) {
         <html>
         <head>
             <title>Wifi visitantes - IFC Concórdia</title>
+            <script src="/css/bootstrap.bundle.min.js"></script>
+            <link rel="stylesheet" href="/css/bootstrap.min.css">
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -242,9 +252,14 @@ switch ($path) {
             </style>
         </head>
         <body>
-            <div style="width: 50%; margin: auto; margin-top:50px; padding-bottom: 50px; text-align: center; padding-top: 50px; border-radius: 10px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">                  
+            <div class="container">
+                <div class="row justify-content-center mt-sm-5">
+                    <div class="col-sm-1 col-md-2">
 
-                <img src="/img/logo_ifc_vertical_concordia.png" alt="IFC Concórdia" style="height: 300px;">
+                    </div>
+                    <div class="col-sm-10 col-md-8 d-flex flex-column justify-content-center align-items-center pb-5" style="border-radius: 10px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">                  
+
+                        <img src="/img/logo_ifc_vertical_concordia.png" alt="IFC Concórdia" class="w-50">
 
         <?php
         if (isset($_GET['code'])) {
@@ -274,7 +289,7 @@ switch ($path) {
                 $responseData = json_decode($response, true);
                 //echo "<p>Resposta do servidor:</p>";
                 //echo "<pre>" . htmlspecialchars(print_r($responseData, true)) . "</pre>";
-            
+                
 
                 if (isset($responseData['id_token'])) {
                     $idToken = $responseData['id_token'];
@@ -288,7 +303,7 @@ switch ($path) {
 
                             //echo "<p>Resposta do servidor:</p>";
                             //echo "<pre>" . htmlspecialchars(print_r($payloadData, true)) . "</pre>";
-		
+
                             $user = [
                                 'name' => $payloadData['name'],
                                 'email' => $payloadData['email'],
@@ -304,9 +319,6 @@ switch ($path) {
                             $cmd = escapeshellcmd("sudo /opt/captive-govbr/scripts/ipset_add.sh $clientIp $clientMacAddress");
                             
                             exec("$cmd 2>&1", $output, $return_var);
-
-				//echo ($cmd);
-				//print_r($output);
 
                             if(!$return_var){
                                 // O comando ipset retornou sucesso, então vamos registar os dados do usuário no banco de dados
@@ -411,10 +423,14 @@ switch ($path) {
             }
             curl_close($ch);
         } else {
-            echo "<p>Nenhum código foi recebido.</p>";
+            echo "<p>Acesso negado.</p>";
         }
         ?>
-            </div>
+        </div>
+         <div class="col-sm-1 col-md-2"></div>
+
+        </div>
+        </div>
         </body>
         </html>
         <?php

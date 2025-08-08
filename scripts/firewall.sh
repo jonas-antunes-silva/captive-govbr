@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Interfaces de rede
-WAN_IFACE="enp0s3"
-LAN_IFACE="enp0s8"
+WAN_IFACE="ens18"
+LAN_IFACE="ens19"
 
 # Obtém o IP da interface LAN
 LAN_IP=$(ip -4 addr show "$LAN_IFACE" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
@@ -30,7 +30,7 @@ ipset destroy temp_clients 2>/dev/null || true
 ipset destroy autorizadores 2>/dev/null || true
 
 # Cria ipset para IPs autenticados
-ipset create authenticated_clients hash:ip,mac timeout 3600
+ipset create authenticated_clients hash:ip,mac
 ipset create temp_clients hash:ip,mac timeout 60
 ipset create autorizadores hash:ip family inet
 
@@ -53,8 +53,9 @@ iptables -A FORWARD -i "$WAN_IFACE" -o "$LAN_IFACE"  -j ACCEPT
 
 iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -m set --match-set authenticated_clients src,src -j ACCEPT
 
-iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -m set --match-set autorizadores dst -m set --match-set temp_clients src,src -j ACCEPT
-iptables -A FORWARD -i "$WAN_IFACE" -o "$LAN_IFACE" -m set --match-set autorizadores src -m set --match-set temp_clients dst,dst -j ACCEPT
+#iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -m set --match-set autorizadores dst -m set --match-set temp_clients src,src -j ACCEPT
+#iptables -A FORWARD -i "$WAN_IFACE" -o "$LAN_IFACE" -m set --match-set autorizadores src -m set --match-set temp_clients dst,dst -j ACCEPT
+iptables -A FORWARD -i "$LAN_IFACE" -o "$WAN_IFACE" -m set --match-set autorizadores dst -j ACCEPT
 
 
 #Redireciona clientes não autenticados
